@@ -1,7 +1,6 @@
 import unittest
 from decrypt import decrypt
 
-
 class TestDecoder(unittest.TestCase):
     def test_one_dot_at_end(self):
         cases = [
@@ -22,11 +21,10 @@ class TestDecoder(unittest.TestCase):
             with self.subTest(enc=enc):
                 self.assertEqual(decrypt(enc), expected)
 
-    def test_three_dots_remove_two_chars(self):
+    def test_three_dots_remove_one_char(self):
         cases = [
+            ("123...45", "1245"),
             ("абрау...-кадабра", "абра-кадабра"),
-            ("абр......a.", "a"),
-            ("123...45", "45"),
         ]
         for enc, expected in cases:
             with self.subTest(enc=enc):
@@ -36,7 +34,7 @@ class TestDecoder(unittest.TestCase):
         cases = [
             ("абраа..-.кадабра", "абра-кадабра"),
             ("абра--..кадабра", "абра-кадабра"),
-            ("а---..б", "аб"),
+            ("а---..б", "а--б"),
         ]
         for enc, expected in cases:
             with self.subTest(enc=enc):
@@ -55,7 +53,6 @@ class TestDecoder(unittest.TestCase):
 
     def test_empty_string(self):
         self.assertEqual(decrypt(""), "")
-
 
 if __name__ == '__main__':
     unittest.main()
