@@ -3,16 +3,13 @@ from accounting import app, storage
 
 
 class TestFinance(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         storage.clear()
         storage['20250301'] = 1500
         storage['20250315'] = 2300
         storage['20250410'] = 3200
         storage['20241220'] = 5000
         storage['20260105'] = 700
-
-    def setUp(self):
         self.client = app.test_client()
 
     def test_add_valid_date(self):
@@ -23,7 +20,8 @@ class TestFinance(unittest.TestCase):
 
     def test_add_invalid_date_format_should_fail(self):
         resp = self.client.get('/add/2025-03-01/1000')
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('Invalid date format', resp.get_data(as_text=True))
 
     def test_add_negative_amount(self):
         resp = self.client.get('/add/20260311/-500')
@@ -34,7 +32,7 @@ class TestFinance(unittest.TestCase):
     def test_calculate_year_existing(self):
         resp = self.client.get('/calculate/2025')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.data.decode(), '12000')
+        self.assertEqual(resp.data.decode(), '7000')
 
     def test_calculate_year_empty(self):
         resp = self.client.get('/calculate/2027')
@@ -53,7 +51,8 @@ class TestFinance(unittest.TestCase):
 
     def test_calculate_month_invalid_month(self):
         resp = self.client.get('/calculate/2025/13')
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('Invalid month', resp.get_data(as_text=True))
 
     def test_add_when_storage_empty(self):
         storage.clear()
