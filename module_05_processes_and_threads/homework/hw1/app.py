@@ -10,42 +10,42 @@
 которая на вход принимает порт и запускает по нему сервер. Если порт будет занят,
 она должна найти процесс по этому порту, завершить его и попытаться запустить сервер ещё раз.
 """
-from typing import List
 
+from typing import List
+import subprocess
+import os
+import signal
 from flask import Flask
 
 app = Flask(__name__)
 
 
 def get_pids(port: int) -> List[int]:
-    """
-    Возвращает список PID процессов, занимающих переданный порт
-    @param port: порт
-    @return: список PID процессов, занимающих порт
-    """
     if not isinstance(port, int):
         raise ValueError
-
     pids: List[int] = []
-    ...
+    try:
+        output = subprocess.check_output(['lsof', '-t', '-i', f':{port}'], text=True, stderr=subprocess.DEVNULL)
+        for line in output.splitlines():
+            if line.strip():
+                pids.append(int(line.strip()))
+    except subprocess.CalledProcessError:
+        pass
     return pids
 
 
 def free_port(port: int) -> None:
-    """
-    Завершает процессы, занимающие переданный порт
-    @param port: порт
-    """
-    pids: List[int] = get_pids(port)
-    ...
+    pids = get_pids(port)
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            print(f"Permission denied to kill PID {pid}")
 
 
 def run(port: int) -> None:
-    """
-    Запускает flask-приложение по переданному порту.
-    Если порт занят каким-либо процессом, завершает его.
-    @param port: порт
-    """
     free_port(port)
     app.run(port=port)
 

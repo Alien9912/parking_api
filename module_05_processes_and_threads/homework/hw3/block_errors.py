@@ -9,10 +9,10 @@ from types import TracebackType
 
 class BlockErrors:
     def __init__(self, errors: Collection) -> None:
-        ...
+        self.errors = errors
 
     def __enter__(self) -> None:
-        ...
+        pass
 
     def __exit__(
             self,
@@ -20,4 +20,9 @@ class BlockErrors:
             exc_val: BaseException | None,
             exc_tb: TracebackType | None
     ) -> Literal[True] | None:
-        ...
+        if exc_type is None:
+            return None
+        for err in self.errors:
+            if issubclass(exc_type, err):
+                return True
+        return None
