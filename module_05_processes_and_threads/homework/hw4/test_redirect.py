@@ -54,6 +54,26 @@ class RedirectTestCase(unittest.TestCase):
         self.assertIs(sys.stdout, old_stdout)
         self.assertIs(sys.stderr, old_stderr)
 
+    def test_exception_suppressed_and_written_to_stderr(self):
+        stderr_buffer = StringIO()
+        old_stderr = sys.stderr
+        try:
+            with Redirect(stderr=stderr_buffer):
+                raise ValueError("Test exception")
+        except ValueError:
+            self.fail("Exception should have been suppressed")
+        self.assertIs(sys.stderr, old_stderr)
+        stderr_output = stderr_buffer.getvalue()
+        self.assertIn("ValueError: Test exception", stderr_output)
+        self.assertIn("Traceback (most recent call last)", stderr_output)
+
+    def test_exception_not_suppressed_when_stderr_not_redirected(self):
+        old_stderr = sys.stderr
+        with self.assertRaises(ValueError):
+            with Redirect():
+                raise ValueError("Test exception")
+        self.assertIs(sys.stderr, old_stderr)
+
 
 if __name__ == '__main__':
     unittest.main()

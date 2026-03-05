@@ -8,12 +8,13 @@
 """
 
 from types import TracebackType
-from typing import Type, Literal, IO
+from typing import Type, Literal, IO, Optional
 import sys
+import traceback
 
 
 class Redirect:
-    def __init__(self, stdout: IO = None, stderr: IO = None) -> None:
+    def __init__(self, stdout: Optional[IO] = None, stderr: Optional[IO] = None) -> None:
         self.stdout = stdout
         self.stderr = stderr
         self.old_stdout = None
@@ -29,10 +30,16 @@ class Redirect:
 
     def __exit__(
             self,
-            exc_type: Type[BaseException] | None,
-            exc_val: BaseException | None,
-            exc_tb: TracebackType | None
-    ) -> Literal[True] | None:
-        sys.stdout = self.old_stdout
-        sys.stderr = self.old_stderr
-        return None
+            exc_type: Optional[Type[BaseException]],
+            exc_val: Optional[BaseException],
+            exc_tb: Optional[TracebackType]
+    ) -> Optional[Literal[True]]:
+        if exc_type is not None and self.stderr is not None:
+            traceback.print_exception(exc_type, exc_val, exc_tb, file=self.stderr)
+            sys.stdout = self.old_stdout
+            sys.stderr = self.old_stderr
+            return True
+        else:
+            sys.stdout = self.old_stdout
+            sys.stderr = self.old_stderr
+            return None
