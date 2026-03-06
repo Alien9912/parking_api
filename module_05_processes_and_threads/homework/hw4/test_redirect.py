@@ -1,9 +1,79 @@
 import unittest
 from redirect import Redirect
+import sys
+from io import StringIO
+
+
+class RedirectTestCase(unittest.TestCase):
+    def test_redirect_stdout(self):
+        stdout_buffer = StringIO()
+        old_stdout = sys.stdout
+        with Redirect(stdout=stdout_buffer):
+            print("Hello, stdout!")
+        self.assertEqual(stdout_buffer.getvalue().strip(), "Hello, stdout!")
+        self.assertIs(sys.stdout, old_stdout)
+
+    def test_redirect_stderr(self):
+        stderr_buffer = StringIO()
+        old_stderr = sys.stderr
+        with Redirect(stderr=stderr_buffer):
+            print("Test error", file=sys.stderr)
+        self.assertEqual(stderr_buffer.getvalue().strip(), "Test error")
+        self.assertIs(sys.stderr, old_stderr)
+
+    def test_redirect_both(self):
+        stdout_buffer = StringIO()
+        stderr_buffer = StringIO()
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        with Redirect(stdout=stdout_buffer, stderr=stderr_buffer):
+            print("Hello stdout")
+            print("Hello stderr", file=sys.stderr)
+        self.assertEqual(stdout_buffer.getvalue().strip(), "Hello stdout")
+        self.assertEqual(stderr_buffer.getvalue().strip(), "Hello stderr")
+        self.assertIs(sys.stdout, old_stdout)
+        self.assertIs(sys.stderr, old_stderr)
+
+    def test_no_redirect(self):
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        with Redirect():
+            self.assertIs(sys.stdout, old_stdout)
+            self.assertIs(sys.stderr, old_stderr)
+        self.assertIs(sys.stdout, old_stdout)
+        self.assertIs(sys.stderr, old_stderr)
+
+    def test_only_one_argument(self):
+        stdout_buffer = StringIO()
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        with Redirect(stdout=stdout_buffer):
+            print("Only stdout")
+            self.assertIs(sys.stderr, old_stderr)
+        self.assertEqual(stdout_buffer.getvalue().strip(), "Only stdout")
+        self.assertIs(sys.stdout, old_stdout)
+        self.assertIs(sys.stderr, old_stderr)
+
+    def test_exception_suppressed_and_written_to_stderr(self):
+        stderr_buffer = StringIO()
+        old_stderr = sys.stderr
+        try:
+            with Redirect(stderr=stderr_buffer):
+                raise ValueError("Test exception")
+        except ValueError:
+            self.fail("Exception should have been suppressed")
+        self.assertIs(sys.stderr, old_stderr)
+        stderr_output = stderr_buffer.getvalue()
+        self.assertIn("ValueError: Test exception", stderr_output)
+        self.assertIn("Traceback (most recent call last)", stderr_output)
+
+    def test_exception_not_suppressed_when_stderr_not_redirected(self):
+        old_stderr = sys.stderr
+        with self.assertRaises(ValueError):
+            with Redirect():
+                raise ValueError("Test exception")
+        self.assertIs(sys.stderr, old_stderr)
 
 
 if __name__ == '__main__':
     unittest.main()
-    # with open('test_results.txt', 'a') as test_file_stream:
-    #     runner = unittest.TextTestRunner(stream=test_file_stream)
-    #     unittest.main(testRunner=runner)
