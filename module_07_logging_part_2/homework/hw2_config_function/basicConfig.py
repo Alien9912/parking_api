@@ -2,6 +2,16 @@ import sys
 import logging
 from utils import string_to_operator
 
+def setup_logging():
+    import sys
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(levelname)s | %(name)s | %(asctime)s | %(lineno)d | %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+
+setup_logging()
 logger = logging.getLogger('app')
 
 def calc(args):

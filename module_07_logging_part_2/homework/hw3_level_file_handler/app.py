@@ -1,7 +1,23 @@
 import sys
 import logging
 from utils import string_to_operator
+from logger_helper import LevelFileHandler
 
+def setup_logging():
+    import sys
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(levelname)s | %(name)s | %(asctime)s | %(lineno)d | %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[logging.StreamHandler(sys.stdout)]
+    )
+
+    level_handler = LevelFileHandler('calc_{level}.log')
+    level_handler.setFormatter(logging.Formatter('%(levelname)s | %(name)s | %(asctime)s | %(lineno)d | %(message)s'))
+    logging.getLogger('app').addHandler(level_handler)
+    logging.getLogger('utils').addHandler(level_handler)
+
+setup_logging()
 logger = logging.getLogger('app')
 
 def calc(args):

@@ -1,7 +1,11 @@
 import sys
 import logging
+import logging.config
+from dict_config import dict_config
 from utils import string_to_operator
+import logging_tree
 
+logging.config.dictConfig(dict_config)
 logger = logging.getLogger('app')
 
 def calc(args):
@@ -31,5 +35,8 @@ def calc(args):
     logger.info(f"{num_1} {operator} {num_2} = {result}")
 
 if __name__ == '__main__':
+    with open('logging_tree.txt', 'w', encoding='utf-8') as f:
+        f.write(logging_tree.format.build_description())
+
     # calc(sys.argv[1:])
     calc('2+3')
