@@ -1,7 +1,10 @@
 import sys
 import logging
+import logging.config
+from dict_config import dict_config
 from utils import string_to_operator
 
+logging.config.dictConfig(dict_config)
 logger = logging.getLogger('app')
 
 def calc(args):
