@@ -21,19 +21,14 @@ class Philosopher(threading.Thread):
             logger.info(f'Philosopher {self.name} start thinking.')
             time.sleep(random.randint(1, 10))
             logger.info(f'Philosopher {self.name} is hungry.')
-            try:
-                self.left_fork.acquire()
+
+            with self.left_fork:
                 logger.info(f'Philosopher {self.name} acquired left fork')
                 if self.right_fork.locked():
                     continue
-                try:
-                    self.right_fork.acquire()
+                with self.right_fork:
                     logger.info(f'Philosopher {self.name} acquired right fork')
                     self.dining()
-                finally:
-                    self.right_fork.release()
-            finally:
-                self.left_fork.release()
 
     def dining(self) -> None:
         logger.info(f'Philosopher {self.name} starts eating.')
@@ -42,9 +37,9 @@ class Philosopher(threading.Thread):
 
 
 def main() -> None:
-    forks: List[threading.Lock] = [threading.Lock() for n in range(5)]
+    forks: List[threading.Lock] = [threading.Lock() for _ in range(5)]
     philosophers: List[Philosopher] = [
-        Philosopher(forks[i % 5], forks[(i + 1) % 5])
+        Philosopher(forks[i], forks[(i + 1) % 5])
         for i in range(5)
     ]
     Philosopher.running = True
