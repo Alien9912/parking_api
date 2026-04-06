@@ -20,11 +20,12 @@ def fun2():
         time.sleep(0.25)
 
 
-t1: Thread = Thread(target=fun1)
-t2: Thread = Thread(target=fun2)
+t1: Thread = Thread(target=fun1, daemon=True)
+t2: Thread = Thread(target=fun2, daemon=True)
 try:
     t1.start()
     t2.start()
+    while True:
+        time.sleep(0.1)
 except KeyboardInterrupt:
     print('\nReceived keyboard interrupt, quitting threads.')
-    exit(1)
