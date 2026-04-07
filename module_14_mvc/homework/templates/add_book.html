@@ -2,20 +2,27 @@
 
 {% block content %}
 <div class="form-style-10">
-    <h1>Add new book!<span>Fill the fields and and new books to the DB!</span></h1>
-    <form action="/books/form" method="post">
-        <div class="section"><span>1</span>Book title</div>
+    <h1>Add new book!<span>Fill the fields and add new books to the DB!</span></h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="section"><span>1</span>{{ form.title.label }}</div>
         <div class="inner-wrap">
-            <label>Book title<input type="text" name="book_title"/></label>
+            {{ form.title(class="form-control", size=40) }}
+            {% for error in form.title.errors %}
+                <span style="color:red;">{{ error }}</span>
+            {% endfor %}
         </div>
 
-        <div class="section"><span>2</span>Author full name</div>
+        <div class="section"><span>2</span>{{ form.author.label }}</div>
         <div class="inner-wrap">
-            <label>Author full name<input type="text" name="author_name"/></label>
+            {{ form.author(class="form-control", size=40) }}
+            {% for error in form.author.errors %}
+                <span style="color:red;">{{ error }}</span>
+            {% endfor %}
         </div>
 
         <div class="button-section">
-            <input type="submit" name="Add new book"/>
+            {{ form.submit() }}
         </div>
     </form>
 </div>
