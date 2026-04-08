@@ -1,0 +1,11 @@
+# Use this workspace to collaborate
+workspace:
+  id: 37e7bd77-12d4-4b2b-8169-1ee0ed9d9ae3
+
+localResources:
+  collections:
+    - ..\module_14_mvc\homework\rooms_collection.json
+
+cloudResources:
+  collections:
+    ..\postman\collections\Rooms API Tests (заказчик): 22d6ad17-5002-4bbd-8288-14ef17afb0bf
