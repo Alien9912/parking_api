@@ -1,0 +1,177 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789012",
+		"name": "Rooms API Tests (заказчик)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get-room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has rooms array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('rooms');",
+							"    pm.expect(jsonData.rooms).to.be.an('array');",
+							"});",
+							"",
+							"if (pm.response.json().rooms.length > 0) {",
+							"    var lastRoom = pm.response.json().rooms[pm.response.json().rooms.length - 1];",
+							"    pm.environment.set('roomId', lastRoom.roomId);",
+							"}",
+							"",
+							"pm.environment.set('totalRoomsBeforeRequest', pm.response.json().rooms.length);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/get-room",
+					"host": ["{{base_url}}"],
+					"path": ["get-room"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add-room",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has rooms array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('rooms');",
+							"    pm.expect(jsonData.rooms).to.be.an('array');",
+							"});",
+							"",
+							"var totalBefore = parseInt(pm.environment.get('totalRoomsBeforeRequest'));",
+							"var totalAfter = pm.response.json().rooms.length;",
+							"pm.test(\"Rooms count increased by 1\", function () {",
+							"    pm.expect(totalAfter).to.equal(totalBefore + 1);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"floor\": 2, \"guestNum\": 3, \"beds\": 2, \"price\": 3500}"
+				},
+				"url": {
+					"raw": "{{base_url}}/add-room",
+					"host": ["{{base_url}}"],
+					"path": ["add-room"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "booking",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains status booked\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('status', 'booked');",
+							"});",
+							"",
+							"// Проверяем, что забронированная комната исчезла из списка",
+							"pm.sendRequest(pm.environment.get('base_url') + '/get-room', function (err, res) {",
+							"    if (!err) {",
+							"        var rooms = res.json().rooms;",
+							"        var roomId = parseInt(pm.environment.get('roomId'));",
+							"        var found = rooms.some(r => r.roomId === roomId);",
+							"        pm.test(\"Booked room no longer in available list\", function () {",
+							"            pm.expect(found).to.be.false;",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// Повторное бронирование той же комнаты должно вернуть 409",
+							"pm.sendRequest({",
+							"    url: pm.environment.get('base_url') + '/booking',",
+							"    method: 'POST',",
+							"    header: {'Content-Type': 'application/json'},",
+							"    body: { mode: 'raw', raw: JSON.stringify({ roomId: parseInt(pm.environment.get('roomId')) }) }",
+							"}, function (err, res) {",
+							"    pm.test(\"Second booking returns 409 Conflict\", function () {",
+							"        pm.expect(res.code).to.equal(409);",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"roomId\": {{roomId}} }"
+				},
+				"url": {
+					"raw": "{{base_url}}/booking",
+					"host": ["{{base_url}}"],
+					"path": ["booking"]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.environment.set('base_url', 'http://127.0.0.1:5000');"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": []
+			}
+		}
+	]
+}
