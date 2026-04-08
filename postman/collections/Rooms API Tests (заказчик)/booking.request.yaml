@@ -1,0 +1,52 @@
+$kind: http-request
+name: booking
+url: http://127.0.0.1:5000/get-room
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: '{"roomId": {{roomId}} }'
+scripts:
+  - type: afterResponse
+    code: >-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+
+      pm.test("Response contains status booked", function () {
+          var jsonData = pm.response.json();
+          pm.expect(jsonData).to.have.property('status', 'booked');
+      });
+
+
+      // Проверяем, что забронированная комната исчезла из списка
+
+      pm.sendRequest(pm.environment.get('base_url') + '/get-room', function
+      (err, res) {
+          if (!err) {
+              var rooms = res.json().rooms;
+              var roomId = parseInt(pm.environment.get('roomId'));
+              var found = rooms.some(r => r.roomId === roomId);
+              pm.test("Booked room no longer in available list", function () {
+                  pm.expect(found).to.be.false;
+              });
+          }
+      });
+
+
+      // Повторное бронирование той же комнаты должно вернуть 409
+
+      pm.sendRequest({
+          url: pm.environment.get('base_url') + '/booking',
+          method: 'POST',
+          header: {'Content-Type': 'application/json'},
+          body: { mode: 'raw', raw: JSON.stringify({ roomId: parseInt(pm.environment.get('roomId')) }) }
+      }, function (err, res) {
+          pm.test("Second booking returns 409 Conflict", function () {
+              pm.expect(res.code).to.equal(409);
+          });
+      });
+    language: text/javascript
+order: 3000

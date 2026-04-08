@@ -1,0 +1,5 @@
+$kind: collection
+scripts:
+  - type: http:beforeRequest
+    code: pm.environment.set('base_url', 'http://127.0.0.1:5000');
+    language: text/javascript
