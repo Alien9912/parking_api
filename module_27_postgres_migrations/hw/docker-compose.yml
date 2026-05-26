@@ -1,0 +1,46 @@
+﻿networks:
+  app-network:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres_hw
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - postgres_logs:/var/log/postgresql
+    command: >
+      postgres 
+      -c log_destination=stderr 
+      -c logging_collector=on 
+      -c log_directory=/var/log/postgresql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  flask_app:
+    build: .
+    container_name: flask_app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    command: gunicorn --bind 0.0.0.0:8000 app.wsgi:app
+
+volumes:
+  postgres_data:
+  postgres_logs:
+
+
