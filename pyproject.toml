@@ -1,0 +1,9 @@
+﻿[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true

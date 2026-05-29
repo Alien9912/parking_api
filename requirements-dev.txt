@@ -1,0 +1,9 @@
+﻿flake8
+isort
+black
+mypy
+pytest
+factory-boy
+Faker
+Flask
+Flask-SQLAlchemy
